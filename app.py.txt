@@ -1,0 +1,87 @@
+import streamlit as st
+import google.generativeai as genai
+
+st.set_page_config(page_title="Validador SENAI", layout="wide", page_icon="⚙️")
+
+st.title("⚙️ Validador de Itens - Metodologia SENAI")
+st.write("Ferramenta de auxílio na construção e validação de itens pedagógicos baseados na Matriz de Referência.")
+
+# Menu Lateral para Configuração da API Key
+st.sidebar.header("🔑 Configuração")
+user_api_key = st.sidebar.text_input(
+    "Insira sua API Key do Gemini:", 
+    type="password", 
+    help="Obtenha gratuitamente no Google AI Studio (aistudio.google.com)"
+)
+
+# Painel de Formulário do Item SENAI
+col_input, col_output = st.columns([1, 1])
+
+with col_input:
+    st.subheader("📝 Dados do Item")
+    uc = st.text_input("Unidade Curricular", placeholder="Ex: Eletrotécnica Geral")
+    capacidade = st.text_input("Capacidade (Técnica ou Socioemocional)", placeholder="Ex: Analisar circuitos trifásicos...")
+    nivel = st.selectbox("Nível Cognitivo (Taxonomia)", ["Lembrar", "Compreender", "Aplicar", "Analisar", "Avaliar", "Criar"])
+    
+    st.subheader("🧩 Componentes do Item")
+    suporte = st.text_area("Texto de Suporte (Situação-Problema / Contexto)", height=120)
+    comando = st.text_area("Comando (Pergunta Direta ou Instrução)", height=80)
+    
+    col_a, col_b = st.columns(2)
+    with col_a:
+        alt_a = st.text_input("Alternativa A")
+        alt_b = st.text_input("Alternativa B")
+    with col_b:
+        alt_c = st.text_input("Alternativa C")
+        alt_d = st.text_input("Alternativa D")
+        
+    gabarito = st.radio("Gabarito Correto", ["A", "B", "C", "D"], horizontal=True)
+
+    btn_validar = st.button("🚀 Validar Item com IA", type="primary", use_container_width=True)
+
+# Painel de Resultado
+with col_output:
+    st.subheader("📊 Relatório de Validação")
+    
+    if btn_validar:
+        if not user_api_key:
+            st.error("⚠️ Insira sua API Key do Gemini no menu lateral para continuar.")
+        elif not comando or not alt_a or not alt_b:
+            st.warning("⚠️ Preencha pelo menos o comando e as duas primeiras alternativas.")
+        else:
+            with st.spinner("Analisando o item sob a Metodologia SENAI..."):
+                try:
+                    genai.configure(api_key=user_api_key)
+                    model = genai.GenerativeModel("gemini-1.5-flash")
+                    
+                    prompt = f"""
+                    Você é um especialista na Metodologia SENAI de Educação Profissional e elaboração de itens de avaliação.
+                    Análise o item a seguir com base nas diretrizes do SENAI:
+
+                    DADOS DO ITEM:
+                    - Unidade Curricular: {uc}
+                    - Capacidade: {capacidade}
+                    - Nível Cognitivo: {nivel}
+                    
+                    ESTRUTURA:
+                    - Texto de Suporte: {suporte}
+                    - Comando: {comando}
+                    - Alternativa A: {alt_a}
+                    - Alternativa B: {alt_b}
+                    - Alternativa C: {alt_c}
+                    - Alternativa D: {alt_d}
+                    - Gabarito Indicado: {gabarito}
+
+                    FORMATO DA SUA RESPOSTA:
+                    1. **Score de Conformidade SENAI**: Dê uma nota de 0 a 100%.
+                    2. **Análise do Suporte**: O contexto é autêntico, claro e indispensável para responder?
+                    3. **Análise do Comando**: É direto, sem ambiguidades, sem negações ou "pegadinhas"?
+                    4. **Análise dos Distratores**: São plausíveis, mantêm o paralelismo sintático e evitam expressões como "N.D.A." ou "Todas as anteriores"?
+                    5. **Versão Refatorada Recomendada**: Reescreva o item corrigindo eventuais desvios para alinhamento total à metodologia SENAI.
+                    """
+                    
+                    response = model.generate_content(prompt)
+                    st.markdown(response.text)
+                    
+                except Exception as e:
+                    st.error(f"Erro na validação: {e}")
