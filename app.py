@@ -9,10 +9,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. Estilização CSS Personalizada (Cores no Padrão SENAI)
-st.markdown("""
-    
-""", unsafe_allow_html=True)
+# 2. Estilização CSS Personalizada
+css_customizado = """
+
+"""
+st.markdown(css_customizado, unsafe_allow_html=True)
 
 # 3. Cabeçalho do App
 st.markdown('
@@ -67,7 +68,7 @@ if btn_validar:
                 * **Texto de Suporte:** [Avaliar autenticidade e necessidade]
                 * **Comando:** [Avaliar clareza, objetividade e ausência de negações/pegadinhas]
                 * **Distratores:** [Avaliar plausibilidade e paralelismo gramatical]
-                ## ✨ Sugestão de Item Refatorado (Padrão SENAI)
+             ## ✨ Sugestão de Item Refatorado (Padrão SENAI)
                 **Texto de Suporte:**  
                 [Texto corrigido]
 
@@ -103,4 +104,4 @@ if btn_validar:
             except Exception as e:
                 st.error(f"Erro na comunicação com a IA: {e}")
 else:
-    st.info("👈 Preencha os campos da questão e clique em **Auditar e Refatorar Item** para gerar a análise.")
+    st.info("👈 Preencha os campos da questão e clique em **Auditar e Refatorar Item** para gerar a análise.")   
